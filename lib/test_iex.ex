@@ -1,19 +1,18 @@
 defmodule TestIex do
   @moduledoc """
   A utility module that helps you iterate faster on unit tests.
-
   This module lets execute specific tests from within a running iex shell to
   avoid needing to start and stop the whole application every time.
   """
 
   @doc """
   Starts the testing context.
-
   ## Examples
-      iex> TestIex.start_testing()
+      iex> TestIex.start()
   """
-  def start_testing() do
+  def start() do
     ExUnit.start()
+    Code.compiler_options(ignore_module_conflict: true)
 
     if File.exists?("test/test_helper.exs") do
       Code.eval_file("test/test_helper.exs", File.cwd!())
@@ -24,7 +23,6 @@ defmodule TestIex do
 
   @doc """
   Loads or reloads testing helpers
-
   ## Examples
       iex> TestIex.load_helper(“test/test_helper.exs”)
   """
@@ -34,13 +32,10 @@ defmodule TestIex do
 
   @doc """
   Runs a single test, a test file, or multiple test files
-
   ## Example: Run a single test
       iex> TestIex.test("./path/test/file/test_file_test.exs", line_number)
-
   ## Example: Run a single test file
       iex> TestIex.test("./path/test/file/test_file_test.exs")
-
   ## Example: Run several test files:
       iex> TestIex.test(["./path/test/file/test_file_test.exs", "./path/test/file/test_file_2_test.exs"])
   """
@@ -53,35 +48,15 @@ defmodule TestIex do
       ExUnit.configure(exclude: [], include: [])
     end
 
-    Code.load_file(path)
-
-    if v6_or_higher?() do
-      ExUnit.Server.modules_loaded()
-    else
-      ExUnit.Server.cases_loaded()
-    end
-
+    Code.compile_file(path)
+    ExUnit.Server.modules_loaded(false)
     ExUnit.run()
   end
 
   def test(paths, _line) when is_list(paths) do
     ExUnit.configure(exclude: [], include: [])
-
-    Enum.map(paths, &Code.load_file/1)
-
-    if v6_or_higher?() do
-      ExUnit.Server.modules_loaded()
-    else
-      ExUnit.Server.cases_loaded()
-    end
-
+    Enum.map(paths, &Code.compile_file/1)
+    ExUnit.Server.modules_loaded(false)
     ExUnit.run()
-  end
-
-  defp v6_or_higher?() do
-    System.version()
-    |> String.split(".")
-    |> Enum.at(1)
-    |> String.to_integer() >= 6
   end
 end
