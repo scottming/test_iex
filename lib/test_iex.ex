@@ -48,6 +48,7 @@ defmodule TestIex do
       ExUnit.configure(exclude: [], include: [])
     end
 
+    IEx.Helpers.recompile()
     Code.compile_file(path)
     ExUnit.Server.modules_loaded(false)
     ExUnit.run()
@@ -55,6 +56,7 @@ defmodule TestIex do
 
   def test(paths, _line) when is_list(paths) do
     ExUnit.configure(exclude: [], include: [])
+    IEx.Helpers.recompile()
     Enum.map(paths, &Code.compile_file/1)
     ExUnit.Server.modules_loaded(false)
     ExUnit.run()
