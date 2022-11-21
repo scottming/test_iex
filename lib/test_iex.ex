@@ -50,7 +50,7 @@ defmodule TestIex do
 
     IEx.Helpers.recompile()
     Code.compile_file(path)
-    ExUnit.Server.modules_loaded(false)
+    server_modules_loaded()
     ExUnit.run()
   end
 
@@ -58,7 +58,13 @@ defmodule TestIex do
     ExUnit.configure(exclude: [], include: [])
     IEx.Helpers.recompile()
     Enum.map(paths, &Code.compile_file/1)
-    ExUnit.Server.modules_loaded(false)
+    server_modules_loaded()
     ExUnit.run()
+  end
+
+  if System.version() > "1.14.1" do
+    defp server_modules_loaded(), do: ExUnit.Server.modules_loaded(false)
+  else
+    defp server_modules_loaded(), do: ExUnit.Server.modules_loaded()
   end
 end
